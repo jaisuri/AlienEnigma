@@ -4,7 +4,7 @@ import pygame as pg
 import json
 from main import GameManager, UIManager, WatchTower, Nemesis, draw_text, create_watchtower, select_watchtower, clear_selection, display_data
 
-class TestTowerDefence(unittest.TestCase):
+class TestAlienEnigma(unittest.TestCase):
     def setUp(self):
         # Mock pygame initialization
         pg.init = Mock()
