@@ -32,7 +32,8 @@ Usage Guide:
 14. To begin the next round click on BEGIN ROUND again
 15. The game will end when either the player's health becomes Zero or the player successfully completes the Level 15
 
-Refer to the attached video to see the game in action and the instructions followed
+Refer to below video for instructions and the game in action 
+https://www.youtube.com/watch?v=_dBzcQjE5EA
 
 Requirements Reference:
 Please refer to the Project Proposal and Requirements Specification document (version 1.2) for more information
