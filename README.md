@@ -38,8 +38,7 @@ Requirements Reference:
 Please refer to the Project Proposal and Requirements Specification document (version 1.2) for more information
 
 Credits & Acknowledgments:
-1. Coding with Russ 
-2. Clear Code for tutorial on how to use Tiled Application for Map creation
-3. www.resizepixel.com for resizing the images
-4. www.dribbble.com for the images 
+1. Clear Code youtube channel for tutorial on how to use Tiled Application for Map creation
+2. www.resizepixel.com for resizing the images
+3. www.dribbble.com for the images 
 

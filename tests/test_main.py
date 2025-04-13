@@ -10,7 +10,7 @@ from pygame.sprite import Sprite
 class TestAlienEnigma(unittest.TestCase):
     def setUp(self):
         # Start Pygame and mock game bits
-        pygame.init()
+        pygame.init() # pylint: disable=no-member
         self.screen = Mock(spec=pygame.Surface)
         main.screen = self.screen
         main.world = Mock()
@@ -34,7 +34,7 @@ class TestAlienEnigma(unittest.TestCase):
 
     def tearDown(self):
         # Shut down Pygame
-        pygame.quit()
+        pygame.quit() # pylint: disable=no-member
 
     def test_draw_text(self):
         # Test if text shows up
