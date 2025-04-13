@@ -9,7 +9,7 @@ from uimanager import UIManager
 class TestUIManager(unittest.TestCase):
     def setUp(self):
         # Start Pygame and set up mocks
-        pygame.init()
+        pygame.init() # pylint: disable=no-member 
         # Mock button image
         self.button_image = Mock(spec=pygame.Surface)
         self.button_rect = pygame.Rect(50, 50, 100, 40)
@@ -22,7 +22,7 @@ class TestUIManager(unittest.TestCase):
 
     def tearDown(self):
         # Clean up Pygame
-        pygame.quit()
+        pygame.quit() # pylint: disable=no-member 
 
     def test_init_valid(self):
         # Test button sets up right

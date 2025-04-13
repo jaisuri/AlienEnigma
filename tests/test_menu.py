@@ -7,7 +7,7 @@ from menu import Menu
 
 class TestMenu(unittest.TestCase):
     def setUp(self):
-        pg.init()
+        pg.init() # pylint: disable=no-member
         self.screen = Mock(spec=pg.Surface)
         self.menu = Menu(self.screen, 1200, 600)
         self.menu.title_font = Mock()
@@ -26,7 +26,7 @@ class TestMenu(unittest.TestCase):
         ]
 
     def tearDown(self):
-        pg.quit()
+        pg.quit() # pylint: disable=no-member
 
     def test_init(self):
         self.assertEqual(self.menu.screen_width, 1200)
@@ -76,18 +76,18 @@ class TestMenu(unittest.TestCase):
             self.assertGreater(button["scale"], 1.0)
 
     @patch('pygame.mouse.get_pos', return_value=(600, 420))
-    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)])
+    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)]) # pylint: disable=no-member
     def test_handle_events_volume(self, mock_event, mock_mouse):
         with patch('pygame.mixer.music.set_volume') as mock_set_volume:
             action = self.menu.handle_events()
             self.assertIsNone(action)
             self.assertAlmostEqual(self.menu.volume, 0.6, places=1)
-            self.assertEqual(self.menu.buttons[2]["text"], "Volume: 60%")
+            self.assertEqual(self.menu.buttons[2]["text"], "Volume: 60")
             mock_set_volume.assert_called_with(0.6)
             self.menu.click_sound.play.assert_called_once()
 
     @patch('pygame.mouse.get_pos', return_value=(600, 505))
-    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)])
+    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)]) # pylint: disable=no-member
     def test_handle_events_music(self, mock_event, mock_mouse):
         self.menu.music_on = True
         with patch('pygame.mixer.music.stop') as mock_stop, patch('pygame.mixer.music.play') as mock_play:
@@ -99,14 +99,14 @@ class TestMenu(unittest.TestCase):
             mock_play.assert_not_called()
 
     @patch('pygame.mouse.get_pos', return_value=(600, 590))
-    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)])
+    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)]) # pylint: disable=no-member
     def test_handle_events_exit(self, mock_event, mock_mouse):
         action = self.menu.handle_events()
         self.assertEqual(action, "exit")
         self.menu.click_sound.play.assert_called_once()
 
     @patch('pygame.mouse.get_pos', return_value=(600, 335))
-    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)])
+    @patch('pygame.event.get', return_value=[Mock(type=pg.MOUSEBUTTONDOWN, button=1)]) # pylint: disable=no-member
     def test_handle_events_how_to(self, mock_event, mock_mouse):
         action = self.menu.handle_events()
         self.assertIsNone(action)

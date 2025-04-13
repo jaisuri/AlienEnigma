@@ -11,7 +11,7 @@ import math
 class TestWatchTower(unittest.TestCase):
     def setUp(self):
         # Start Pygame and set up mocks
-        pygame.init()
+        pygame.init() # pylint: disable=no-member 
         # Mock sprite sheet
         self.sprite_sheet = Mock(spec=pygame.Surface)
         self.sprite_sheet.get_height.return_value = 32
@@ -53,7 +53,7 @@ class TestWatchTower(unittest.TestCase):
 
     def tearDown(self):
         # Clean up Pygame and patches
-        pygame.quit()
+        pygame.quit() # pylint: disable=no-member 
         self.patcher.stop()
         self.config_patch.stop()
 
@@ -100,7 +100,7 @@ class TestWatchTower(unittest.TestCase):
     def test_load_frames_invalid_sheet(self):
         # Test bad sprite sheet
         bad_sheet = Mock()
-        bad_sheet.get_height.side_effect = pygame.error
+        bad_sheet.get_height.side_effect = pygame.error # pylint: disable=no-member 
         frames = self.watchtower._load_frames(bad_sheet)
         self.assertEqual(frames, [])
 

@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import Mock, patch
 import pygame
-from pygame.math import Vector2
+from pygame.math import Vector2 # pylint: disable=no-name-in-module
 from nemesis import Nemesis
 import settings as config
 import math
@@ -12,7 +12,7 @@ import math
 class TestNemesis(unittest.TestCase):
     def setUp(self):
         # Start Pygame and set up mocks
-        pygame.init()
+        pygame.init() # pylint: disable=no-member
         # Mock game world
         self.game_world = Mock()
         self.game_world.game_speed = 1
@@ -49,7 +49,7 @@ class TestNemesis(unittest.TestCase):
 
     def tearDown(self):
         # Clean up Pygame and patches
-        pygame.quit()
+        pygame.quit() # pylint: disable=no-member 
         self.patcher.stop()
         self.config_patch.stop()
 

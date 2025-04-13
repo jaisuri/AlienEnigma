@@ -12,10 +12,10 @@ from menu import Menu
 
 # Initialize Pygame
 try:
-    pg.init()
+    pg.init() # pylint: disable=no-member
 except Exception as e:
     print(f"Failed to initialize Pygame: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
 
 # Setup clock for controlling frame rate
 clock = pg.time.Clock()
@@ -26,7 +26,7 @@ try:
     pg.display.set_caption("Alien Enigma")
 except:
     print("Error in initialising the screen")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
 
 # Initialize MainMenu
 menu = Menu(screen, c.SCREEN_WIDTH + c.SIDE_PANEL, c.SCREEN_HEIGHT)
@@ -63,18 +63,18 @@ try:
     heart_image = pg.image.load("assets/images/ui/heart.png").convert_alpha()
     coin_image = pg.image.load("assets/images/ui/coin.png").convert_alpha()
     logo_image = pg.image.load("assets/images/ui/logo.png").convert_alpha()
-except pg.error as e:
+except pg.error as e: # pylint: disable=no-member
     print(f"Error loading images: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
    
 
 # Load sound effects
 try:
     shot_fx = pg.mixer.Sound('assets/audio/watchtower_shot.wav')
     shot_fx.set_volume(0.5)
-except pg.error as e:
+except pg.error as e: # pylint: disable=no-member
     print(f"Error loading sound: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
    
 
 # Load level data from JSON
@@ -83,20 +83,20 @@ try:
         world_data = json.load(file)
 except FileNotFoundError as e:
     print(f"Level file not found: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
    
 except json.JSONDecodeError as e:
     print(f"Invalid JSON in level file: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
    
 
 # Load fonts
 try:
     text_font = pg.font.SysFont("Cousine", 24, bold=True)
     large_font = pg.font.SysFont("Cousine", 36)
-except pg.error as e:
+except pg.error as e: # pylint: disable=no-member
     print(f"Error loading fonts: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
    
 
 # Function to render text on screen
@@ -159,7 +159,7 @@ try:
     world.process_nemesis()
 except Exception as e:
     print(f"Error creating world: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
 
 # Create sprite groups
 nemesis_group = pg.sprite.Group()
@@ -175,7 +175,7 @@ try:
     fast_forward_button = UIManager(c.SCREEN_WIDTH + 77, 340, fast_forward_image, False)
 except ValueError as e:
     print(f"Error creating buttons: {e}")
-    pg.quit()
+    pg.quit() # pylint: disable=no-member
 
 # Main game loop
 run = True
@@ -290,9 +290,9 @@ while run:
     # Update display
     try:
         pg.display.flip()
-    except pg.error as e:
+    except pg.error as e: # pylint: disable=no-member
         print(f"Error updating display: {e}")
         run = False
 
 # Cleanup and exit
-pg.quit()
+pg.quit() # pylint: disable=no-member 
