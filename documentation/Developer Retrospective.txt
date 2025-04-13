@@ -1,0 +1,20 @@
+Developer Retrospective
+
+What went well
+- An excellent opportunity where I could demonstrate the OOP concepts learnt into the game
+- Utilised the vectors and geometery concepts I learnt in Mathematics Specialist 
+- Building on the Python concepts I learnt in Year 11
+- Representing the project flow in system architecture and class diagram, gave a very good idea for the designing and development  
+- Developing unit tests along side the program classess helped in making sure no regression bugs are introduced
+- Use of mock and patch for unit testing 
+
+Challenges faced
+- Learning new program (Tiled) for generating the game world and the way paths
+- Game crashes due to corrupted music file and game logic on handling index out error
+- Leaning and use of mock and patch was challenging during unit testing as the implementation was difficult during development
+
+Lessons learnt
+- Learnt new programm (Tiled), which will help me create more maps if needed to extend the game with different layouts for different levels
+- Extensive use of exception handling allowed me to identify and fix issues easily
+- Along with manual testing and debugging, unit tests play an important role in the code quality and reducing the rework time
+  

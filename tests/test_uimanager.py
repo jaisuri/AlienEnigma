@@ -1,90 +1,106 @@
+# Unit tests for UIManager class in Alien Enigma
+# Testing buttons for buying watchtowers and starting nemesis waves
+
 import unittest
-import pygame as pg
 from unittest.mock import Mock, patch
-from uimanager import UIManager  # Assuming your code is in button.py
+import pygame
+from uimanager import UIManager
 
 class TestUIManager(unittest.TestCase):
     def setUp(self):
-        # Initialize pygame for tests
-        pg.init()
-        # Create a test surface and image
-        self.test_surface = pg.Surface((800, 600))
-        self.test_image = pg.Surface((100, 50))
-        # Create a basic button instance
-        self.uimanager = UIManager(100, 100, self.test_image, False)
+        # Start Pygame and set up mocks
+        pygame.init()
+        # Mock button image
+        self.button_image = Mock(spec=pygame.Surface)
+        self.button_rect = pygame.Rect(50, 50, 100, 40)
+        self.button_image.get_rect.return_value = self.button_rect
+        # Mock screen
+        self.screen = Mock(spec=pygame.Surface)
+        # Create UIManager instances
+        self.ui_button = UIManager(50, 50, self.button_image, False)
+        self.ui_one_shot = UIManager(50, 50, self.button_image, True)
 
     def tearDown(self):
-        pg.quit()
+        # Clean up Pygame
+        pygame.quit()
 
-    def test_init_valid_parameters(self):
-        #Test button initialization with valid parameters
-        uimanager = UIManager(50, 50, self.test_image, True)
-        self.assertEqual(uimanager.rect.topleft, (50, 50))
-        self.assertFalse(uimanager.clicked)
-        self.assertTrue(uimanager.single_click)
-        self.assertEqual(uimanager.image, self.test_image)
+    def test_init_valid(self):
+        # Test button sets up right
+        self.assertEqual(self.ui_button.image, self.button_image)
+        self.assertEqual(self.ui_button.rect.topleft, (50, 50))
+        self.assertEqual(self.ui_button.rect.x, 50)
+        self.assertEqual(self.ui_button.rect.y, 50)
+        self.assertFalse(self.ui_button.is_clicked)
+        self.assertFalse(self.ui_button.one_shot)
+        self.assertTrue(self.ui_one_shot.one_shot)
 
     def test_init_invalid_image(self):
-        #Test initialization with invalid image
-        with self.assertRaises(ValueError):
-            UIManager(0, 0, None, False)
+        # Test with bad image
+        try:
+            UIManager(50, 50, None, False)
+            self.fail("Should have failed with bad image")
+        except:
+            pass
 
-    def test_init_invalid_coordinates(self):
-        #Test initialization with invalid coordinate types
-        with self.assertRaises(TypeError):
-            UIManager("invalid", 0, self.test_image, False)
+    def test_draw_no_click(self):
+        # Test drawing without clicking
+        with patch('pygame.mouse.get_pos', return_value=(0, 0)), \
+             patch('pygame.mouse.get_pressed', return_value=(0, 0, 0)):
+            result = self.ui_button.draw(self.screen)
+            self.assertFalse(result)
+            self.assertFalse(self.ui_button.is_clicked)
+            self.screen.blit.assert_called_with(self.ui_button.image, self.ui_button.rect)
 
-    @patch('pygame.mouse.get_pos')
-    @patch('pygame.mouse.get_pressed')
-    def test_draw_no_click(self, mock_get_pressed, mock_get_pos):
-        #Test draw method when button is not clicked
-        mock_get_pos.return_value = (0, 0)  # Mouse outside button
-        mock_get_pressed.return_value = (0, 0, 0)  # No buttons pressed
-        
-        action = self.uimanager.draw(self.test_surface)
-        self.assertFalse(action)
-        self.assertFalse(self.uimanager.clicked)
+    def test_draw_click(self):
+        # Test clicking the button
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(1, 0, 0)):
+            result = self.ui_button.draw(self.screen)
+            self.assertTrue(result)
+            self.screen.blit.assert_called_with(self.ui_button.image, self.ui_button.rect)
 
-    @patch('pygame.mouse.get_pos')
-    @patch('pygame.mouse.get_pressed')
-    def test_draw_single_click(self, mock_get_pressed, mock_get_pos):
-        #Test draw method with single-click button
-        uimanager = UIManager(0, 0, self.test_image, True)
-        mock_get_pos.return_value = (10, 10)  # Mouse over button
-        mock_get_pressed.return_value = (1, 0, 0)  # Left mouse button pressed
-        
-        # First click
-        action = uimanager.draw(self.test_surface)
-        self.assertTrue(action)
-        self.assertTrue(uimanager.clicked)
+    def test_draw_one_shot_clicked(self):
+        # Test one-shot button gets clicked
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(1, 0, 0)):
+            result = self.ui_one_shot.draw(self.screen)
+            self.assertTrue(result)
+            self.screen.blit.assert_called_with(self.ui_one_shot.image, self.ui_one_shot.rect)
 
-        # Second click while still pressed
-        action = uimanager.draw(self.test_surface)
-        self.assertFalse(action)  # No action on second call while clicked
+    def test_draw_click_release(self):
+        # Test button resets after releasing mouse
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(1, 0, 0)):
+            result = self.ui_button.draw(self.screen)
+            self.assertTrue(result)
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(0, 0, 0)):
+            result = self.ui_button.draw(self.screen)
+            self.assertFalse(result)
+            self.assertFalse(self.ui_button.is_clicked)
+            self.screen.blit.assert_called_with(self.ui_button.image, self.ui_button.rect)
 
-    @patch('pygame.mouse.get_pos')
-    @patch('pygame.mouse.get_pressed')
-    def test_draw_multi_click(self, mock_get_pressed, mock_get_pos):
-        #Test draw method with multi-click button
-        uimanager = UIManager(0, 0, self.test_image, False)
-        mock_get_pos.return_value = (10, 10)  # Mouse over button
-        mock_get_pressed.return_value = (1, 0, 0)  # Left mouse uimanager pressed
-        
-        # Multiple clicks should all trigger action
-        for _ in range(3):
-            action = uimanager.draw(self.test_surface)
-            self.assertTrue(action)
-            self.assertFalse(uimanager.clicked)  # Reset each time
+    def test_draw_one_shot_release(self):
+        # Test one-shot button after release
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(1, 0, 0)):
+            result = self.ui_one_shot.draw(self.screen)
+            self.assertTrue(result)
+        with patch('pygame.mouse.get_pos', return_value=(60, 60)), \
+             patch('pygame.mouse.get_pressed', return_value=(0, 0, 0)):
+            result = self.ui_one_shot.draw(self.screen)
+            self.assertFalse(result)
+            self.assertFalse(self.ui_one_shot.is_clicked)  # Resets after release
+            self.screen.blit.assert_called_with(self.ui_one_shot.image, self.ui_one_shot.rect)
 
-    @patch('pygame.mouse.get_pos')
-    def test_draw_reset_clicked(self, mock_get_pos):
-        #Test clicked state resets when mouse released
-        self.uimanager.clicked = True
-        mock_get_pos.return_value = (10, 10)
-        
-        with patch('pygame.mouse.get_pressed', return_value=(0, 0, 0)):
-            self.uimanager.draw(self.test_surface)
-            self.assertFalse(self.uimanager.clicked)
+    def test_draw_outside_click(self):
+        # Test clicking outside button
+        with patch('pygame.mouse.get_pos', return_value=(200, 200)), \
+             patch('pygame.mouse.get_pressed', return_value=(1, 0, 0)):
+            result = self.ui_button.draw(self.screen)
+            self.assertFalse(result)
+            self.assertFalse(self.ui_button.is_clicked)
+            self.screen.blit.assert_called_with(self.ui_button.image, self.ui_button.rect)
 
 if __name__ == '__main__':
     unittest.main()

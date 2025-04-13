@@ -1,104 +1,75 @@
+# Unit tests for GameManager in Alien Enigma
+# Checking if the game world sets up and runs nemesis stuff right
+
 import unittest
-import pygame as pg
+from unittest.mock import Mock
 from gamemanager import GameManager
-from unittest.mock import patch
-
-# Mock constants and nemesis spawn data
-class MockConstants:
-    HEALTH = 100
-    MONEY = 200
-
-NEMESIS_SPAWN_DATA = [
-    {"weak": 3, "strong": 2},  # Level 1
-    {"weak": 5, "strong": 3}   # Level 2
-]
-
-# Sample level data
-SAMPLE_LEVEL_DATA = {
-    "layers": [
-        {"name": "tilemap", "data": [0, 1, 2, 3]},
-        {"name": "waypoints", "objects": [{"polyline": [{"x": 0, "y": 0}, {"x": 50, "y": 50}]}]}
-    ]
-}
+import settings as config
 
 class TestGameManager(unittest.TestCase):
     def setUp(self):
-        # Initialize Pygame and mock resources
-        try:
-            pg.init()
-            self.map_image = pg.Surface((1000, 600))
-            self.map_image.fill((0, 255, 0))  # Green map
-            self.screen = pg.display.set_mode((1000, 600), pg.HIDDEN)
-        except pg.error as e:
-            self.skipTest(f"Skipping test due to Pygame init failure: {e}")
-
-    def tearDown(self):
-        # Clean up Pygame
-        try:
-            pg.quit()
-        except Exception as e:
-            print(f"Warning: Failed to quit Pygame in tearDown: {e}")
+        # Get ready with fake level data and a pretend map image
+        self.level_data = {
+            "layers": [
+                {"name": "tilemap", "data": [1, 2, 3]},
+                {"name": "waypoints", "objects": [{"polyline": [{"x": 0, "y": 0}, {"x": 10, "y": 10}]}]}
+            ]
+        }
+        self.map_image = Mock()  # Stand-in for a Pygame picture
+        self.game_mgr = GameManager(self.level_data, self.map_image)
 
     def test_init_valid(self):
-        # Test GameManager initialization
-        with patch('gamemanager.c', MockConstants):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            self.assertEqual(world.level, 1)
-            self.assertEqual(world.health, 100)
-            self.assertEqual(world.money, 200)
-            self.assertEqual(world.image, self.map_image)
+        # Make sure the game starts off okay
+        self.assertEqual(self.game_mgr.level, 1)
+        self.assertEqual(self.game_mgr.health, config.HEALTH)
+        self.assertEqual(self.game_mgr.money, config.MONEY)
+        self.assertEqual(self.game_mgr.tile_map, [])
+        self.assertEqual(self.game_mgr.nemesis_list, [])
 
     def test_process_data(self):
-        # Test processing level data
-        with patch('gamemanager.c', MockConstants):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.process_data()
-            self.assertEqual(world.tile_map, [0, 1, 2, 3])
-            self.assertEqual(world.waypoints, [(0, 0), (50, 50)])
+        # Check if tile map and waypoints load right
+        self.game_mgr.process_data()
+        self.assertEqual(self.game_mgr.tile_map, [1, 2, 3])
+        self.assertEqual(self.game_mgr.waypoints, [(0, 0), (10, 10)])
 
     def test_process_waypoints(self):
-        # Test waypoint extraction
-        with patch('gamemanager.c', MockConstants):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.process_waypoints([{"x": 10, "y": 20}, {"x": 30, "y": 40}])
-            self.assertEqual(world.waypoints, [(10, 20), (30, 40)])
+        # See if waypoints skip bad data
+        waypoint_data = [{"x": 5, "y": 5}, {"x": None, "y": 10}]
+        self.game_mgr.grab_waypoints(waypoint_data)
+        self.assertEqual(self.game_mgr.waypoints, [(5, 5)])  # Just the good point
 
-    def test_process_enemies(self):
-        # Test enemy list generation and shuffling
-        with patch('gamemanager.c', MockConstants), patch('gamemanager.NEMESIS_SPAWN_DATA', NEMESIS_SPAWN_DATA):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.process_enemies()
-            self.assertEqual(len(world.enemy_list), 5)  # 3 weak + 2 strong
-            self.assertTrue(all(e in ["weak", "strong"] for e in world.enemy_list))
+    def test_process_nemesis(self):
+        # Test if nemesis list fills up for level 1
+        self.game_mgr.process_nemesis()
+        self.assertEqual(len(self.game_mgr.nemesis_list), 15)  # Should get 15 weak nemesis
+        self.assertTrue(all(nemesis == "weak" for nemesis in self.game_mgr.nemesis_list))
 
     def test_check_level_complete(self):
-        # Test level completion check
-        with patch('gamemanager.c', MockConstants), patch('gamemanager.NEMESIS_SPAWN_DATA', NEMESIS_SPAWN_DATA):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.process_enemies()
-            world.killed_enemies = 3
-            world.missed_enemies = 2
-            self.assertTrue(world.check_level_complete())
+        # Check if level ends when all nemesis are handled
+        self.game_mgr.process_nemesis()
+        self.game_mgr.killed_nemesis = 10
+        self.game_mgr.missed_nemesis = 5
+        self.assertTrue(self.game_mgr.check_level_complete())
+        self.game_mgr.killed_nemesis = 5
+        self.assertFalse(self.game_mgr.check_level_complete())
 
     def test_reset_level(self):
-        # Test level reset
-        with patch('gamemanager.c', MockConstants):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.spawned_enemies = 5
-            world.killed_enemies = 3
-            world.missed_enemies = 2
-            world.reset_level()
-            self.assertEqual(world.spawned_enemies, 0)
-            self.assertEqual(world.killed_enemies, 0)
-            self.assertEqual(world.missed_enemies, 0)
-            self.assertEqual(world.enemy_list, [])
+        # Make sure level clears out for a fresh start
+        self.game_mgr.nemesis_list = ["weak", "medium"]
+        self.game_mgr.spawned_nemesis = 2
+        self.game_mgr.killed_nemesis = 1
+        self.game_mgr.missed_nemesis = 1
+        self.game_mgr.reset_level()
+        self.assertEqual(self.game_mgr.nemesis_list, [])
+        self.assertEqual(self.game_mgr.spawned_nemesis, 0)
+        self.assertEqual(self.game_mgr.killed_nemesis, 0)
+        self.assertEqual(self.game_mgr.missed_nemesis, 0)
 
     def test_draw(self):
-        # Test drawing the world
-        with patch('gamemanager.c', MockConstants):
-            world = GameManager(SAMPLE_LEVEL_DATA, self.map_image)
-            world.draw(self.screen)
-            self.assertEqual(self.screen.get_at((0, 0)), pg.Color(0, 255, 0, 255))
+        # Test if the map draws in the right spot
+        screen = Mock()
+        self.game_mgr.draw(screen)
+        screen.blit.assert_called_once_with(self.map_image, (0, 0))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

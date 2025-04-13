@@ -1,95 +1,76 @@
-import pygame as pg
-from pygame.math import Vector2
+# Nemesis class for Alien Enigma
+# Handles the bad guys that move along a path and get shot by the Watch Towers
+
+import pygame
 import math
-import settings as c
+from pygame.math import Vector2
+import settings as config
 from nemesis_data import NEMESIS_DATA
 
-class Nemesis(pg.sprite.Sprite):
-    def __init__(self, enemy_type, waypoints, images):
-        # Initialize a Nemesis sprite with type, waypoints, and image
+class Nemesis(pygame.sprite.Sprite):
+    def __init__(self, nemesis_type, waypoints, images):
+        # Set up a nemesis with its type, path, and picture
+        pygame.sprite.Sprite.__init__(self)
         try:
-            pg.sprite.Sprite.__init__(self)
             if not waypoints or not isinstance(waypoints, list):
-                raise ValueError("Waypoints must be a non-empty list")
-            self.waypoints = waypoints  # List of waypoints for movement
-            self.pos = Vector2(self.waypoints[0])  # Starting position
-            self.target_waypoint = 1  # Index of next waypoint
-            self.health = NEMESIS_DATA.get(enemy_type)["health"]  # Health from data
-            self.speed = NEMESIS_DATA.get(enemy_type)["speed"]  # Speed from data
-            self.angle = 0  # Initial rotation angle in degrees
-            self.original_image = images.get(enemy_type)  # Original sprite image
-            self.image = pg.transform.rotate(self.original_image, self.angle)  # Rotated image
-            self.rect = self.image.get_rect()  # Rectangle for positioning
-            self.rect.center = self.pos  # Set initial position
-        except KeyError as e:
-            raise ValueError(f"Invalid enemy_type '{enemy_type}' in NEMESIS_DATA: {e}")
-        except IndexError as e:
-            raise IndexError(f"Invalid waypoints list: {e}")
-        except TypeError as e:
-            raise TypeError(f"Invalid parameters (enemy_type, waypoints, or images): {e}")
-        except AttributeError as e:
-            raise ValueError(f"Invalid image for enemy_type '{enemy_type}': {e}")
+                 print("Waypoints need to be a list with stuff in it!")
+                 raise ValueError
+            self.waypoints = waypoints           # Where the nemesis walks
+            self.pos = Vector2(waypoints[0])     # Starting spot
+            self.next_waypoint = 1               # Which point to head for next
+            self.health = NEMESIS_DATA[nemesis_type]["health"]  # How tough it is
+            self.speed = NEMESIS_DATA[nemesis_type]["speed"]    # How fast it moves
+            self.angle = 0                       # For spinning the image
+            self.base_image = images[nemesis_type]  # The unspun picture
+            self.image = pygame.transform.rotate(self.base_image, self.angle)  # Spun picture
+            self.rect = self.image.get_rect(center=self.pos)  # Where to draw it
+            # Point at next waypoint to start
+            self.target = Vector2(waypoints[1] if len(waypoints) > 1 else waypoints[0])
+        except:
+            print(f"Unable to initialise nemesis module.")
 
-    def update(self, world):
-        # Update Nemesis state: move, rotate, and check if alive
-        try:
-            self.move(world)  # Move along waypoints
-            self.rotate()  # Rotate towards next waypoint
-            self.check_alive(world)  # Check health and update world stats
-        except Exception as e:
-            print(f"Error in update: {e}")
 
-    def move(self, world):
-        # Move Nemesis towards the next waypoint
-        try:
-            if self.target_waypoint < len(self.waypoints):
-                self.target = Vector2(self.waypoints[self.target_waypoint])  # Next waypoint
-                self.movement = self.target - self.pos  # Movement vector
+    def update(self, game_world):
+        # Move, spin, and check if this nemesis is still kicking
+        self.move(game_world)
+        self.rotate()
+        self.check_alive(game_world)
+
+    def move(self, game_world):
+        # Head toward the next waypoint or finish the path
+        if self.next_waypoint < len(self.waypoints):
+            target = Vector2(self.waypoints[self.next_waypoint])
+            direction = target - self.pos
+            distance = direction.length()
+            move_speed = self.speed * game_world.game_speed
+            if distance >= move_speed:
+                self.pos += direction.normalize() * move_speed
             else:
-                # Nemesis reached the end of the path
-                self.kill()
-                world.health -= 1
-                world.missed_enemies += 1
-                return
-
-            # Calculate distance to target
-            dist = self.movement.length()
-            # Adjust position based on speed and game speed
-            if dist >= (self.speed * world.game_speed):
-                self.pos += self.movement.normalize() * (self.speed * world.game_speed)
-            else:
-                if dist != 0:
-                    self.pos += self.movement.normalize() * dist
-                self.target_waypoint += 1
-        except IndexError as e:
-            print(f"IndexError in move: {e}, target_waypoint={self.target_waypoint}")
-        except AttributeError as e:
-            print(f"Error accessing world.game_speed: {e}")
-        except ValueError as e:
-            print(f"Error normalizing movement vector: {e}")
-
+                # Close enough, snap to it
+                if distance:
+                    self.pos += direction.normalize() * distance
+                self.next_waypoint += 1
+            self.target = target  # Update target for rotation
+        else:
+            # Reached the end - oops!
+            self.kill()
+            game_world.health -= 1
+            game_world.missed_nemesis += 1
+        self.rect.center = self.pos
+        
     def rotate(self):
-        # Rotate Nemesis to face the next waypoint
-        try:
-            # Calculate distance to next waypoint
-            dist = self.target - self.pos
-            # Calculate angle in degrees
-            self.angle = math.degrees(math.atan2(-dist[1], dist[0]))
-            # Rotate image and update rectangle
-            self.image = pg.transform.rotate(self.original_image, self.angle)
-            self.rect = self.image.get_rect()
-            self.rect.center = self.pos
-        except AttributeError as e:
-            print(f"Error rotating Nemesis: {e}")
-        except ValueError as e:
-            print(f"Error calculating angle: {e}")
+        # Turn to face the next waypoint
+        if self.target is None:
+            print("No target to rotate toward - skipping!")
+            return
+        direction = self.target - self.pos
+        self.angle = math.degrees(math.atan2(-direction[1], direction[0]))
+        self.image = pygame.transform.rotate(self.base_image, self.angle)
+        self.rect = self.image.get_rect(center=self.pos)
 
-    def check_alive(self, world):
-        # Check if Nemesis is still alive and update world stats
-        try:
-            if self.health <= 0:
-                world.killed_enemies += 1
-                world.money += c.KILL_REWARD
-                self.kill()
-        except AttributeError as e:
-            print(f"Error checking alive status: {e}")
+    def check_alive(self, game_world):
+        # See if the nemesis got defeated
+        if self.health <= 0:
+            game_world.killed_nemesis += 1
+            game_world.money += config.KILL_REWARD
+            self.kill()
