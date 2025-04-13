@@ -25,7 +25,7 @@ try:
     screen = pg.display.set_mode((c.SCREEN_WIDTH + c.SIDE_PANEL, c.SCREEN_HEIGHT))
     pg.display.set_caption("Alien Enigma")
 except:
-    print(f"Error in initialising the screen")
+    print("Error in initialising the screen")
     pg.quit()
 
 # Initialize MainMenu
@@ -105,7 +105,7 @@ def draw_text(text, font, color, x, y):
         img = font.render(text, True, color)
         screen.blit(img, (x, y))
     except:
-        print(f"Error rendering the text on screen.")
+        print("Error rendering the text on screen.")
 
 # Function to display game stats on side panel
 def display_data():
@@ -119,7 +119,7 @@ def display_data():
         screen.blit(coin_image, (c.SCREEN_WIDTH - 700, 30))
         draw_text(str(world.money), text_font, "red", c.SCREEN_WIDTH - 650, 30)
     except:
-        print(f"Error displaying game statistics on screen.")
+        print("Error displaying game statistics on screen.")
 
 # Function to place a watchtower at mouse position
 def create_watchtower(mouse_pos):
@@ -133,7 +133,7 @@ def create_watchtower(mouse_pos):
                 watchtower_group.add(new_watchtower)
                 world.money -= c.BUY_COST
     except:
-        print(f"Error placing the Watch Tower.")
+        print("Error placing the Watch Tower.")
 
 # Function to select a watchtower at mouse position
 def select_watchtower(mouse_pos):
@@ -145,12 +145,12 @@ def select_watchtower(mouse_pos):
                 return tower
         return None
     except:
-        print(f"Error in selecting the Watch Tower.")
+        print("Error in selecting the Watch Tower.")
 
 # Function to deselect all watchtowers
 def clear_selection():
     for tower in watchtower_group:
-            tower.selected = False
+        tower.selected = False
 
 # Initialize game world
 try:
